@@ -44,7 +44,15 @@ class MyAppState extends ChangeNotifier {
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  var selectedIndex = 1;
+  var extended = false;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,14 +60,23 @@ class MyHomePage extends StatelessWidget {
         children: [
           SafeArea(
             child: NavigationRail(
-              extended: false,  //probar a extender esto en otro momento
+              extended: extended,  //probar a extender esto en otro momento
               destinations: [
+                NavigationRailDestination(icon: Icon(Icons.align_horizontal_left), label: Text('Toggle'),),
                 NavigationRailDestination(icon: Icon(Icons.home), label: Text('Home'),),
                 NavigationRailDestination(icon: Icon(Icons.favorite), label: Text('Favorites'),),
               ],
-              selectedIndex: 0,
+              selectedIndex: selectedIndex, //Indica el número de elemento del riel que se marcará como seleccionado
               onDestinationSelected: (value) {
-                print('selected: $value');
+                if(value==0) {
+                  setState(() {
+                    extended = !extended;
+                  });
+                } else {
+                  setState(() {
+                    selectedIndex = value;
+                  });
+                }
               },
             )
           ),
@@ -72,6 +89,32 @@ class MyHomePage extends StatelessWidget {
         ],
       )
     );
+  }
+}
+
+class FavoritesPage extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    var appState = context.watch<MyAppState>();
+
+    if (appState.favorites.isEmpty) {
+      return Center(child: Text('No favorites yet.'),);
+    } else {
+      return ListView(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Text('You have '
+                '${appState.favorites.length} favorites:'),
+          ),
+          for (var pair in appState.favorites)
+            ListTile(
+              leading: Icon(Icons.favorite),
+              title: Text(pair.asLowerCase),
+            ),
+        ],
+      );
+    }
   }
 }
 
@@ -99,7 +142,7 @@ class GeneratorPage extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              ElevatedButton.icon( //Botón de like
+              ElevatedButton.icon( //Botón de like con un constructor que incluye un icono
                 onPressed: () {
                   appState.toggleFavorite();
                 },
